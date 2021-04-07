@@ -9,7 +9,7 @@ import datetime
 from decouple import config
 from werkzeug.security import generate_password_hash, check_password_hash
 
-origin_list = ['http://localhost:3000/', 'https://upload-image-9ff60.web.app']
+origin_list = ['https://upload-image-9ff60.web.app']
 
 app = Flask(__name__)
 api = Api(app=app)
