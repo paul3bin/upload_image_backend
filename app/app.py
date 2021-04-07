@@ -15,9 +15,8 @@ app = Flask(__name__)
 api = Api(app=app)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
-app.config[
-    'SECRET_KEY'] = '\xebvp\xd8\x1f\xe5\xaa\xc6\xe7\xdbQ\xd3\xf1nG \xdf\xd3\xb7\xc2/"\xcfy'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user.db'
+app.config['SECRET_KEY'] = config("SECRET_KEY")
+app.config['SQLALCHEMY_DATABASE_URI'] = config("DATABASE_URL")
 
 db = SQLAlchemy(app=app)
 
