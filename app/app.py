@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request, make_response
 from flask_restful import Resource, Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS, cross_origin
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 import jwt
 import uuid
@@ -20,6 +22,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = config("DATABASE_URL")
 
 db = SQLAlchemy(app=app)
 
+limiter = Limiter(app=app,
+                  key_func=get_remote_address,
+                  default_limits=["200 per day", "50 per hour"])
+
 
 # Creating User model
 class User(db.Model):
@@ -36,20 +42,18 @@ class Login(Resource):
     @cross_origin(origin=origin_list, headers=[
         'Content-Type',
     ])
+    @limiter.limit("5 per minute")
     def post(self):
         auth = request.get_json()
 
         if not auth or not auth["username"] or not auth["password"]:
             return make_response(
-                'Could not verify', 401,
-                {'WWW-Authenticate': 'Basic realm="Login required!"'})
+                jsonify(message='Username or password not passed!'), 401)
 
         user = User.query.filter_by(username=auth["username"]).first()
 
         if not user:
-            return make_response(
-                'Could not verify', 401,
-                {'WWW-Authenticate': 'Basic realm="Login required!"'})
+            return make_response(jsonify(message='User does not exist!'), 401)
 
         if check_password_hash(user.password, auth["password"]):
             token = jwt.encode(
@@ -64,15 +68,15 @@ class Login(Resource):
                 }, app.config['SECRET_KEY'])
             return jsonify({'token': token})
 
-        return make_response(
-            'Could not verify!', 401,
-            {'WWW-Authenticate': 'Basic realm = "Login Required"'})
+        return make_response(jsonify(message='Wrong username or password!'),
+                             401)
 
 
 class Register(Resource):
     @cross_origin(origin=origin_list, headers=[
         'Content-Type',
     ])
+    @limiter.limit("5 per minute")
     def post(self):
         data = request.get_json()
 
