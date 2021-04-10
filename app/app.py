@@ -38,6 +38,14 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=False)
 
 
+class Home(Resource):
+    @cross_origin(origin=origin_list, headers=[
+        'Content-Type',
+    ])
+    @limiter.limit("5 per minute")
+    def get(self):
+        return jsonify({"Use": ["/login to authenticate user", "/register to register a new user"]})
+
 class Login(Resource):
     @cross_origin(origin=origin_list, headers=[
         'Content-Type',
@@ -90,6 +98,6 @@ class Register(Resource):
 
         return jsonify({'message': f'New user created - {data["username"]}'})
 
-
+api.add_resource(Home, "/")
 api.add_resource(Login, "/login")
 api.add_resource(Register, "/register")
